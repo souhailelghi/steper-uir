@@ -315,39 +315,39 @@ const Stepper = ({ sportId, token: propToken }) => {
     }
   };
 
-  const handleSubmitaddReservation = async (e) => {
-    e.preventDefault();
+//   const handleSubmitaddReservation = async (e) => {
+//     e.preventDefault();
 
-    const studentIds = studentIdList.split(',').map((id) => id.trim());
+//     const studentIds = studentIdList.split(',').map((id) => id.trim());
 
-    const reservationData = {
-      studentId,
-      sportId:"e3c1b585-941b-4798-ae84-6b1ed147f397",
-      reservationDate: new Date().toISOString(),
-      dayBooking, 
-      hourStart,
-      hourEnd,
-      studentIdList: studentIds,
-      dateCreation: new Date().toISOString(),
-      dateModification: new Date().toISOString(),
-    };
+//     const reservationData = {
+//       studentId,
+//       sportId:"e3c1b585-941b-4798-ae84-6b1ed147f397",
+//       reservationDate: new Date().toISOString(),
+//       dayBooking, 
+//       hourStart,
+//       hourEnd,
+//       studentIdList: studentIds,
+//       dateCreation: new Date().toISOString(),
+//       dateModification: new Date().toISOString(),
+//     };
 
-    try {
-      const response = await axios.post(
-        'https://localhost:7125/api/Reservations/AddReservations',
-        reservationData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      console.log('Reservation created:', response.data);
-    } catch (error) {
-      console.error('Error creating reservation:', error);
-      setError("Failed to create reservation.");
-    }
-  };
+//     try {
+//       const response = await axios.post(
+//         'https://localhost:7125/api/Reservations/AddReservations',
+//         reservationData,
+//         {
+//           headers: {
+//             Authorization: `Bearer ${token}`,
+//           },
+//         }
+//       );
+//       console.log('Reservation created:', response.data);
+//     } catch (error) {
+//       console.error('Error creating reservation:', error);
+//       setError("Failed to create reservation.");
+//     }
+//   };
 
   const handleInputChange = (e) => {
     setToken(e.target.value);
@@ -379,33 +379,9 @@ const Stepper = ({ sportId, token: propToken }) => {
   };
 
 
-//   --------
 
-// const validateTime = async () => {
-//     try {
-//         setLoading(true);
-//         setErrors(null);
-//         var sportIdd = "e3c1b585-941b-4798-ae84-6b1ed147f397";
-//         var tkn = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZGFtQGpvYmludGVjaC11aXIubWEiLCJqdGkiOiJhNzQwNTgzZC05YTZlLTQyMDctOGFlZi03YzAzODcyYTRmZWYiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzI5NDY1ODQ0LCJpc3MiOiJGcmVlVHJhaW5lZCJ9.DI6S7R9s8knou0hID07siYIw8u--NxfCVIks2p0FsRE";
 
-//         const response = await axios.get(
-      
-//           `https://localhost:7125/api/Plannings/get-timeRanges-by-sport-and-day-not-reserved/${sportIdd}/${day}`,
-//           {
-//             headers: {
-//               Authorization: `Bearer ${tkn}`,
-//             },
-//           }
-//         );
-//         console.log(response.data);
-        
-//         setTimeRanges(response.data);
-//       } catch (err) {
-//         setErrors('Error fetching time ranges');
-//       } finally {
-//         setLoading(false);
-//       }
-//   };
+
   const fetchMatchesForCategory = async (categoryId) => {
     try {
       setLoading(true);
@@ -414,6 +390,13 @@ const Stepper = ({ sportId, token: propToken }) => {
           Authorization: `Bearer ${token}`,
         },
       });
+      console.log("data cat :" ,response);
+        // Assuming response.data is an array of sports
+    response.data.forEach(sport => {
+        console.log("Sport ID:", sport.id); // Log the ID of each sport
+      });
+   
+      
       setMatches(response.data);
       setError("");
     } catch (error) {
@@ -423,6 +406,50 @@ const Stepper = ({ sportId, token: propToken }) => {
     }
   };
 
+
+
+  const handleSubmitaddReservation = async (e) => {
+    e.preventDefault();
+
+    const studentIds = studentIdList.split(',').map((id) => id.trim());
+  // Get the sportId from the selectedSport or the matches array
+     const selectedSportObject = matches.find(match => match.title === selectedCategory);
+
+     const sportId = selectedSportObject ? selectedSportObject.id : "";
+
+     console.log('selectedSportObject : is !!!', selectedSportObject);
+    console.log('sportId : is !!!', sportId);
+    
+
+
+    const reservationData = {
+      studentId,
+      sportId,
+      reservationDate: new Date().toISOString(),
+      dayBooking, 
+      hourStart,
+      hourEnd,
+      studentIdList: studentIds,
+      dateCreation: new Date().toISOString(),
+      dateModification: new Date().toISOString(),
+    };
+
+    try {
+      const response = await axios.post(
+        'https://localhost:7125/api/Reservations/AddReservations',
+        reservationData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+      console.log('Reservation created:', response.data);
+    } catch (error) {
+      console.error('Error creating reservation:', error);
+      setError("Failed to create reservation.");
+    }
+  };
   const handleSportSelection = (e) => {
     const selectedSportName = e.target.value;
     setSelectedSport(selectedSportName);
