@@ -27,6 +27,8 @@ const Stepper = ({ sportId, token: propToken }) => {
   const [hourStart, setHourStart] = useState('');
   const [hourEnd, setHourEnd] = useState('');
   const [studentIdList, setStudentIdList] = useState('');
+  const [sportName , setSportName]=useState(null);
+  const [sportNames , setSportNames]=useState(null);
 
   //--
   const [day, setDay] = useState('');
@@ -124,7 +126,7 @@ const Stepper = ({ sportId, token: propToken }) => {
       console.log("data cat :" ,response);
         // Assuming response.data is an array of sports
     response.data.forEach(sport => {
-        console.log("Sport ID:", sport.id); // Log the ID of each sport
+        console.log("Get Sport ID from method fetchMatchesForCategory :", sport.id); 
       });
    
       
@@ -147,12 +149,14 @@ const Stepper = ({ sportId, token: propToken }) => {
 
     const studentIds = studentIdList.split(',').map((id) => id.trim());
   // Get the sportId from the selectedSport or the matches array
-     const selectedSportObject = matches.find(match => match.title === selectedCategory);
+     const selectedSportObject = matches.find(match => match.id === selectedCategory);
 
      const sportId = selectedSportObject ? selectedSportObject.id : "";
+     const sportName = selectedSportObject ? selectedSportObject.name : "";
 
      console.log('selectedSportObject : is !!!', selectedSportObject);
     console.log('sportId : is !!!', sportId);
+    console.log('sport name  is !!!', sportName );
     
 
 
@@ -180,6 +184,9 @@ const Stepper = ({ sportId, token: propToken }) => {
       );
       console.log('Reservation created:', response.data);
       setSuccess(response.data);
+      setSportName(sportName)
+        setSportName(sportName);
+
       setError(null); 
     
     } catch (error) {
@@ -227,6 +234,15 @@ const Stepper = ({ sportId, token: propToken }) => {
   }, [sportId, day]);
 
   const fetchTimeRanges = async () => {
+   // Get the sportId from the selectedSport or the matches array
+   const selectedSportObject = matches.find(match => match.id === selectedCategory);
+
+   const sportId = selectedSportObject ? selectedSportObject.id : "";
+   const sportNames = selectedSportObject ? selectedSportObject.name : "";
+ 
+   console.log(' handleclickImag selectedSportObject : is !!!', selectedSportObject);
+  console.log('image handling sportId : is !!!', sportId);
+  console.log('image handling sportname  : is !!!', sportNames );
     try {
       setLoading(true);
       setError(null);
@@ -241,7 +257,7 @@ const Stepper = ({ sportId, token: propToken }) => {
         }
       );
       console.log(response.data);
-      
+      setSportNames( sportNames)
       setTimeRanges(response.data);
     } catch (err) {
       setError('Error fetching time ranges');
@@ -265,13 +281,20 @@ const Stepper = ({ sportId, token: propToken }) => {
         setError(null);
         var sportIdd = "e3c1b585-941b-4798-ae84-6b1ed147f397";
         var tkn = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZGFtQGpvYmludGVjaC11aXIubWEiLCJqdGkiOiJhNzQwNTgzZC05YTZlLTQyMDctOGFlZi03YzAzODcyYTRmZWYiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzI5NDY1ODQ0LCJpc3MiOiJGcmVlVHJhaW5lZCJ9.DI6S7R9s8knou0hID07siYIw8u--NxfCVIks2p0FsRE";
+  // Get the sportId from the selectedSport or the matches array
+  const selectedSportObject = matches.find(match => match.title === selectedCategory);
 
+  const sportId = selectedSportObject ? selectedSportObject.id : "";
+
+  console.log(' handleclickImag selectedSportObject : is !!!', selectedSportObject);
+ console.log('image handling sportId : is !!!', sportId);
+ 
         const response = await axios.get(
       
-          `https://localhost:7125/api/Plannings/get-timeRanges-by-sport-and-day-not-reserved/${sportIdd}/${day}`,
+          `https://localhost:7125/api/Plannings/get-timeRanges-by-sport-and-day-not-reserved/${sportId}/${day}`,
           {
             headers: {
-              Authorization: `Bearer ${tkn}`,
+              Authorization: `Bearer ${token}`,
             },
           }
         );
@@ -352,27 +375,29 @@ const Stepper = ({ sportId, token: propToken }) => {
 
         {currentStep === 3 && selectedSport && matches.length > 0 && (
           <div>
+              <p>{sportName}</p>
             <h3 className="text-lg font-semibold mb-2">Choisissez un match pour {selectedSport} :</h3>
             <div className="card-container">
               {matches.map((match, index) => (
                 <div
                   key={index}
-                  className={`card ${selectedCategory === match.title ? "selected" : ""}`}
-                  onClick={() => setSelectedCategory(match.title)}
+                  className={`card ${selectedCategory === match.id ? "selected" : ""}`}
+                  onClick={() => setSelectedCategory(match.id)}
                 >
                   <img 
                     src={match.image ? `data:image/png;base64,${match.image}` : 'placeholder.png'} 
                     alt={match.name} 
                     style={{ width: '100px', height: '100px' }} 
-                    onClick={handleclickImag}
+                    onClick={fetchTimeRanges}
                   />
                   <p>{match.name}</p>
                 </div>
               ))}
             </div>
             {selectedCategory && (
-              <p className="mt-2 text-green-600">Match sélectionné : {selectedCategory}</p>
+              <p className="mt-2 text-green-600">Match sélectionné : {selectedCategory} name : {sportNames} </p>
             )}
+              
           </div>
         )}
 
@@ -381,6 +406,7 @@ const Stepper = ({ sportId, token: propToken }) => {
         <div>
   {loading && <p>Loading...</p>}
   {success && <p className="success-message">{success} </p>}
+
   {error && <p className="error-message">{error}</p>}
 
   {currentStep === 4 && selectedSport && matches.length > 0 && (
@@ -388,6 +414,7 @@ const Stepper = ({ sportId, token: propToken }) => {
       <div>
         <label>Student ID:</label>
         <input
+        className="btn btn-primary" 
           type="text"
           value={studentId}
           onChange={(e) => setStudentId(e.target.value)}
@@ -430,12 +457,14 @@ const Stepper = ({ sportId, token: propToken }) => {
       <div>
         <label>Student ID List:</label>
         <input
+        className="btn btn-primary" 
           type="text"
           value={studentIdList}
           onChange={(e) => setStudentIdList(e.target.value)}
           required
         />
       </div>
+   
 
       <button className="btn btn-primary" type="submit" disabled={loading}>
         {loading ? 'Adding...' : 'Add Reservation'}
