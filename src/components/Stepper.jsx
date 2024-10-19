@@ -9,6 +9,7 @@ import "../components/Stepper/stepper.css";
 
 const Stepper = ({ sportId, token: propToken }) => {
   const steps = ["Token Authorization", "Choisir Sport", "Choisir Match", "Réserver terrain"];
+  const [success, setSuccess] = useState(null); 
   const [currentStep, setCurrentStep] = useState(1);
   const [complete, setComplete] = useState(false);
   const [selectedSport, setSelectedSport] = useState("");
@@ -18,7 +19,7 @@ const Stepper = ({ sportId, token: propToken }) => {
   const [tokenError, setTokenError] = useState("");
   const [sports, setSports] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+//   const [error, setError] = useState("");
   const [matches, setMatches] = useState([]); 
     //----
   const [studentId, setStudentId] = useState('');
@@ -32,7 +33,8 @@ const Stepper = ({ sportId, token: propToken }) => {
   const [timeRanges, setTimeRanges] = useState([]);
   const [selectedTimeRange, setSelectedTimeRange] = useState(null);
   
-  const [errors, setErrors] = useState(null);
+  const [error, setError] = useState(null);
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleTimeRangeSelect = (timeRange) => {
     if (timeRange) {
@@ -139,6 +141,9 @@ const Stepper = ({ sportId, token: propToken }) => {
 
   const handleSubmitaddReservation = async (e) => {
     e.preventDefault();
+    setLoading(true); 
+    setSuccess(null);  // Clear previous success message
+    setError(null);    // Clear previous error message
 
     const studentIds = studentIdList.split(',').map((id) => id.trim());
   // Get the sportId from the selectedSport or the matches array
@@ -174,10 +179,17 @@ const Stepper = ({ sportId, token: propToken }) => {
         }
       );
       console.log('Reservation created:', response.data);
+      setSuccess(response.data);
+      setError(null); 
+    
     } catch (error) {
+     
       console.error('Error creating reservation:', error);
       setError("Failed to create reservation.");
-    }
+      setSuccess(null); // Clear any previous success
+    }finally {
+        setLoading(false); // Stop loading after request completes
+      }
   };
 
   const handleSportSelection = (e) => {
@@ -217,7 +229,7 @@ const Stepper = ({ sportId, token: propToken }) => {
   const fetchTimeRanges = async () => {
     try {
       setLoading(true);
-      setErrors(null);
+      setError(null);
       
       const response = await axios.get(
     
@@ -232,7 +244,7 @@ const Stepper = ({ sportId, token: propToken }) => {
       
       setTimeRanges(response.data);
     } catch (err) {
-      setErrors('Error fetching time ranges');
+      setError('Error fetching time ranges');
     } finally {
       setLoading(false);
     }
@@ -246,20 +258,11 @@ const Stepper = ({ sportId, token: propToken }) => {
 
   const handleclickImag = async (e) => {
 
-    // const selectedSportName = e.target.value;
-    // setSelectedSport(selectedSportName);
-    // setSelectedCategory(""); 
-
-    // const selectedSportObject = sports.find(sport => sport.name === selectedSportName);
-    // console.log('selected sport : ', selectedSportObject);
-    // console.log('selected sport id : ', selectedSportObject.id);
-    
-    // if (selectedSportObject && selectedSportObject.id) {
-    //   fetchMatchesForCategory(selectedSportObject.id);
-    // }
+  
+  
     try {
         setLoading(true);
-        setErrors(null);
+        setError(null);
         var sportIdd = "e3c1b585-941b-4798-ae84-6b1ed147f397";
         var tkn = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhZGFtQGpvYmludGVjaC11aXIubWEiLCJqdGkiOiJhNzQwNTgzZC05YTZlLTQyMDctOGFlZi03YzAzODcyYTRmZWYiLCJodHRwOi8vc2NoZW1hcy5taWNyb3NvZnQuY29tL3dzLzIwMDgvMDYvaWRlbnRpdHkvY2xhaW1zL3JvbGUiOiJVc2VyIiwiZXhwIjoxNzI5NDY1ODQ0LCJpc3MiOiJGcmVlVHJhaW5lZCJ9.DI6S7R9s8knou0hID07siYIw8u--NxfCVIks2p0FsRE";
 
@@ -276,7 +279,7 @@ const Stepper = ({ sportId, token: propToken }) => {
         
         setTimeRanges(response.data);
       } catch (err) {
-        setErrors('Error fetching time ranges');
+        setError('Error fetching time ranges');
       } finally {
         setLoading(false);
       }
@@ -375,62 +378,74 @@ const Stepper = ({ sportId, token: propToken }) => {
 
         
         {/* //todo : step 4 : ----------------------------------------------------- Form reservation :  */}
-        {currentStep === 4 && selectedSport && matches.length > 0 && (
-          <form onSubmit={handleSubmitaddReservation}>
-            <div>
-              <label>Student ID:</label>
-              {/* id studnet //////////////////////////// */}
-              <input
-                type="text"
-                value={studentId}
-                onChange={(e) => setStudentId(e.target.value)}
-                required
-              />
-            </div>
-       
-              <div>
-      <h1>Get Available Time Ranges for {day}</h1>
-
-      {loading && <p>Loading...</p>}
-      {error && <p>{error}</p>}
-
-      {timeRanges.length > 0 && !loading && (
         <div>
-          <h2>Select Available Time Range</h2>
-          <form>
-            {timeRanges.map((timeRange) => (
-              <div key={timeRange.id}>
-                <input
-                  type="radio"
-                  id={`timeRange-${timeRange.id}`}
-                  name="timeRange"
-                  value={timeRange.id}
-                  onChange={handleTimeRangeChange}
-                />
-                <label htmlFor={`timeRange-${timeRange.id}`}>
-                  {timeRange.hourStart} - {timeRange.hourEnd}
-                </label>
-              </div>
-            ))}
-          </form>
-        </div>
-      )}
+  {loading && <p>Loading...</p>}
+  {success && <p className="success-message">{success} </p>}
+  {error && <p className="error-message">{error}</p>}
 
-      {timeRanges.length === 0 && !loading && !error && <p>No time ranges available</p>}
-    </div>
-            <div>
-              <label>Student ID List :</label>
-                {/* id studnet //////////////////////////// */}
-              <input
-                type="text"
-                value={studentIdList}
-                onChange={(e) => setStudentIdList(e.target.value)}
-                required
-              />
-            </div>
-            <button  className="btn btn-primary" type="submit" >Add Reservation</button>
-          </form>
+  {currentStep === 4 && selectedSport && matches.length > 0 && (
+    <form onSubmit={handleSubmitaddReservation}>
+      <div>
+        <label>Student ID:</label>
+        <input
+          type="text"
+          value={studentId}
+          onChange={(e) => setStudentId(e.target.value)}
+          required
+        />
+      </div>
+
+      <div>
+        <h1>Time for {day}</h1>
+        {loading && <p>Loading...</p>}
+        {error && <p className="error-message">{error}</p>}
+
+        {timeRanges.length > 0 && !loading && (
+          <div>
+            <h2>Select Time</h2>
+            <form>
+              {timeRanges.map((timeRange) => (
+                <div key={timeRange.id}>
+                  <input
+                    type="radio"
+                    id={`timeRange-${timeRange.id}`}
+                    name="timeRange"
+                    value={timeRange.id}
+                    onChange={handleTimeRangeChange}
+                  />
+                  <label htmlFor={`timeRange-${timeRange.id}`}>
+                    {timeRange.hourStart} - {timeRange.hourEnd}
+                  </label>
+                </div>
+              ))}
+            </form>
+          </div>
         )}
+
+        {timeRanges.length === 0 && !loading && !error && (
+          <p>No time ranges available</p>
+        )}
+      </div>
+
+      <div>
+        <label>Student ID List:</label>
+        <input
+          type="text"
+          value={studentIdList}
+          onChange={(e) => setStudentIdList(e.target.value)}
+          required
+        />
+      </div>
+
+      <button className="btn btn-primary" type="submit" disabled={loading}>
+        {loading ? 'Adding...' : 'Add Reservation'}
+      </button>
+    </form>
+  )}
+</div>
+
+
+
 
         <div className="flex justify-between mt-6 -mx-6">
           {currentStep > 1 && !complete && (
