@@ -49,7 +49,7 @@ import Stepper from './components/Stepper';
 const App = () => {
   return (
     <div>
-      <h1 className="text-3xl font-bold text-center my-8">Réservation Sportive</h1>
+   
       <Stepper />
     </div>
   );

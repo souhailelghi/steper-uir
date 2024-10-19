@@ -1,275 +1,4 @@
-// import React, { useEffect, useState } from "react";
-// import axios from "axios";
-// import { TiTick } from "react-icons/ti";
-// import "../components/Stepper/stepper.css";
-// import TimsForReservation from './ReservationWithFormToken/TimsForReservation';
 
-// const Stepper = ({ sportId, token: propToken }) => {
-//   const steps = ["Token Authorization", "Choisir Sport", "Choisir Match", "Réserver terrain"];
-//   const [currentStep, setCurrentStep] = useState(1);
-//   const [complete, setComplete] = useState(false);
-//   const [selectedSport, setSelectedSport] = useState("");
-//   const [selectedCategory, setSelectedCategory] = useState("");
-//   const [token, setToken] = useState(propToken || "");
-//   const [isAuthorized, setIsAuthorized] = useState(false);
-//   const [tokenError, setTokenError] = useState("");
-//   const [sports, setSports] = useState([]);
-//   const [loading, setLoading] = useState(false);
-//   const [error, setError] = useState("");
-//   const [matches, setMatches] = useState([]); 
-
-//   const [studentId, setStudentId] = useState('');
-//   const [dayBooking] = useState(4); 
-//   const [hourStart, setHourStart] = useState('');
-//   const [hourEnd, setHourEnd] = useState('');
-//   const [studentIdList, setStudentIdList] = useState('');
-
-//   const handleTimeRangeSelect = (timeRange) => {
-//     if (timeRange) {
-//       setHourStart(timeRange.hourStart);
-//       setHourEnd(timeRange.hourEnd);
-//     } else {
-//       setHourStart('');
-//       setHourEnd('');
-//     }
-//   };
-
-//   const handleSubmit = async (e) => {
-//     e.preventDefault();
-
-//     const studentIds = studentIdList.split(',').map((id) => id.trim());
-
-//     const reservationData = {
-//       studentId,
-//       sportId,
-//       reservationDate: new Date().toISOString(),
-//       dayBooking, 
-//       hourStart,
-//       hourEnd,
-//       studentIdList: studentIds,
-//       dateCreation: new Date().toISOString(),
-//       dateModification: new Date().toISOString(),
-//     };
-
-//     try {
-//       const response = await axios.post(
-//         'https://localhost:7125/api/Reservations/AddReservations',
-//         reservationData,
-//         {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         }
-//       );
-//       console.log('Reservation created:', response.data);
-//     } catch (error) {
-//       console.error('Error creating reservation:', error);
-//       setError("Failed to create reservation.");
-//     }
-//   };
-
-//   const handleInputChange = (e) => {
-//     setToken(e.target.value);
-//   };
-
-//   const validateToken = async () => {
-//     if (token) {
-//       try {
-//         setLoading(true);
-//         const response = await axios.get('https://localhost:7125/api/SportCategorys/list', {
-//           headers: {
-//             Authorization: `Bearer ${token}`,
-//           },
-//         });
-//         console.log("validate Token is good ");
-//         setSports(response.data);
-//         setIsAuthorized(true);
-//         setTokenError("");
-//       } catch (error) {
-//         setIsAuthorized(false);
-//         setTokenError("Token invalide, veuillez réessayer.");
-//         setError(error.response ? error.response.data : 'Error fetching data');
-//       } finally {
-//         setLoading(false);
-//       }
-//     } else {
-//       setTokenError("Veuillez entrer un token.");
-//     }
-//   };
-
-//   const fetchMatchesForCategory = async (categoryId) => {
-//     try {
-//       setLoading(true);
-//       const response = await axios.get(`https://localhost:7125/api/Sports/category/${categoryId}`, {
-//         headers: {
-//           Authorization: `Bearer ${token}`,
-//         },
-//       });
-//       setMatches(response.data);
-//       setError("");
-//     } catch (error) {
-//       setError("Failed to fetch matches for the selected category.");
-//     } finally {
-//       setLoading(false);
-//     }
-//   };
-
-//   const handleSportSelection = (e) => {
-//     const selectedSport = e.target.value;
-//     setSelectedSport(selectedSport);
-//     setSelectedCategory(""); 
-
-//     const selectedSportObject = sports.find(sport => sport.name === selectedSport);
-//     if (selectedSportObject && selectedSportObject.id) {
-//       fetchMatchesForCategory(selectedSportObject.id);
-//     }
-//   };
-
-//   const handleFinishReservation = () => {
-//     setComplete(true);
-//   };
-
-//   return (
-//     <div className="container mx-auto mt-8 p-6 max-w-2xl bg-white">
-//       <div className="flex justify-between">
-//         {steps.map((step, i) => (
-//           <div
-//             key={i}
-//             className={`step-item ${currentStep === i + 1 && "active"} ${(i + 1 < currentStep || complete) && "complete"}`}
-//           >
-//             <div className="step">
-//               {i + 1 < currentStep || complete ? <TiTick size={24} /> : i + 1}
-//             </div>
-//             <p className="text-gray-500">{step}</p>
-//           </div>
-//         ))}
-//       </div>
-
-//       <div className="mt-8">
-//         {currentStep === 1 && (
-//           <div>
-//             <h3 className="text-lg font-semibold mb-2">Enter your token for authorization:</h3>
-//             <input
-//               type="text"
-//               className="select"
-//               value={token}
-//               onChange={handleInputChange}
-//               placeholder="Enter Token"
-//             />
-//             <div className="mt-10">
-//               <button onClick={validateToken} className="btn btn-primary">Validate Token</button>
-//             </div>
-//             {tokenError && <p className="text-red-600 mt-2">{tokenError}</p>}
-//           </div>
-//         )}
-
-//         {currentStep === 2 && isAuthorized && (
-//           <div>
-//             <h3 className="text-lg font-semibold mb-2">Choisissez un sport :</h3>
-//             {loading && <p>Loading sports...</p>}
-//             {error && <p className="text-red-600">{error}</p>}
-//             <select
-//               className="select"
-//               value={selectedSport}
-//               onChange={handleSportSelection}
-//             >
-//               <option value="">-- Sélectionnez un sport --</option>
-//               {sports.map((sport, index) => (
-//                 <option key={index} value={sport.name}>
-//                   {sport.name}
-//                 </option>
-//               ))}
-//             </select>
-//             {selectedSport && (
-//               <p className="mt-2 text-green-600">Sport sélectionné : {selectedSport}</p>
-//             )}
-//           </div>
-//         )}
-
-//         {currentStep === 3 && selectedSport && matches.length > 0 && (
-//           <div>
-//             <h3 className="text-lg font-semibold mb-2">Choisissez un match pour {selectedSport} :</h3>
-//             <div className="card-container">
-//               {matches.map((match, index) => (
-//                 <div
-//                   key={index}
-//                   className={`card ${selectedCategory === match.title ? "selected" : ""}`}
-//                   onClick={() => setSelectedCategory(match.title)}
-//                 >
-//                   <img 
-//                     src={match.image ? `data:image/png;base64,${match.image}` : 'placeholder.png'} 
-//                     alt={match.name} 
-//                     style={{ width: '100px', height: '100px' }} 
-//                   />
-//                   <p>{match.name}</p>
-//                 </div>
-//               ))}
-//             </div>
-//             {selectedCategory && (
-//               <p className="mt-2 text-green-600">Match sélectionné : {selectedCategory}</p>
-//             )}
-//           </div>
-//         )}
-
-//         {currentStep === 4 && selectedSport && matches.length > 0 && (
-//           <form onSubmit={handleSubmit}>
-//             <div>
-//               <label>Student ID:</label>
-//               <input
-//                 type="text"
-//                 value={studentId}
-//                 onChange={(e) => setStudentId(e.target.value)}
-//                 required
-//               />
-//             </div>
-//             <TimsForReservation
-//               sportId={sportId}
-//               token={token}
-//               onTimeRangeSelect={handleTimeRangeSelect}
-//             />
-//             <div>
-//               <label>Student ID List :</label>
-//               <input
-//                 type="text"
-//                 value={studentIdList}
-//                 onChange={(e) => setStudentIdList(e.target.value)}
-//                 required
-//               />
-//             </div>
-//             <button type="submit">Add Reservation</button>
-//           </form>
-//         )}
-
-//         <div className="flex justify-between mt-6 -mx-6">
-//           {currentStep > 1 && !complete && (
-//             <button
-//               className="btn btn-secondary"
-//               onClick={() => setCurrentStep((prev) => prev - 1)}
-//             >
-//               Précédent
-//             </button>
-//           )}
-//           {currentStep === steps.length ? (
-//             <button className="btn btn-success" onClick={handleFinishReservation}>
-//               Fin
-//             </button>
-//           ) : (
-//             <button
-//               className="btn btn-primary"
-//               onClick={() => setCurrentStep((prev) => prev + 1)}
-//               disabled={complete || (currentStep === 2 && !isAuthorized) || (currentStep === 3 && !selectedSport)}
-//             >
-//               Suivant
-//             </button>
-//           )}
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default Stepper;
-//todo : ----------------------------- ------------------------------
 //todo : ----------------------------- ------------------------------
 
 import React, { useEffect, useState } from "react";
@@ -293,7 +22,7 @@ const Stepper = ({ sportId, token: propToken }) => {
   const [matches, setMatches] = useState([]); 
     //----
   const [studentId, setStudentId] = useState('');
-  const [dayBooking] = useState(4); 
+  const [dayBooking] = useState(5); 
   const [hourStart, setHourStart] = useState('');
   const [hourEnd, setHourEnd] = useState('');
   const [studentIdList, setStudentIdList] = useState('');
@@ -450,6 +179,7 @@ const Stepper = ({ sportId, token: propToken }) => {
       setError("Failed to create reservation.");
     }
   };
+
   const handleSportSelection = (e) => {
     const selectedSportName = e.target.value;
     setSelectedSport(selectedSportName);
@@ -466,6 +196,8 @@ const Stepper = ({ sportId, token: propToken }) => {
 
   const handleFinishReservation = () => {
     setComplete(true);
+    // setCurrentStep(1);
+    window.location.reload(); 
   };
 // todo : ''''''''''''''''''''''''
   // Set day to today's day
@@ -566,6 +298,8 @@ const Stepper = ({ sportId, token: propToken }) => {
       </div>
 
       <div className="mt-8">
+           
+        {/* //todo : step 1 : -----------------------------------------------------   */}
         {currentStep === 1 && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Enter your token for authorization:</h3>
@@ -585,7 +319,8 @@ const Stepper = ({ sportId, token: propToken }) => {
             {tokenError && <p className="text-red-600 mt-2">{tokenError}</p>}
           </div>
         )}
-
+               
+        {/* //todo : step 2 : -----------------------------------------------------   */}
         {currentStep === 2 && isAuthorized && (
           <div>
             <h3 className="text-lg font-semibold mb-2">Choisissez un sport :</h3>
@@ -608,6 +343,9 @@ const Stepper = ({ sportId, token: propToken }) => {
             )}
           </div>
         )}
+
+         
+        {/* //todo : step 3 : -----------------------------------------------------   */}
 
         {currentStep === 3 && selectedSport && matches.length > 0 && (
           <div>
@@ -690,7 +428,7 @@ const Stepper = ({ sportId, token: propToken }) => {
                 required
               />
             </div>
-            <button type="submit">Add Reservation</button>
+            <button  className="btn btn-primary" type="submit" >Add Reservation</button>
           </form>
         )}
 
