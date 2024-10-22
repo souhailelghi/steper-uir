@@ -6,6 +6,16 @@ import axios from "axios";
 import { TiTick } from "react-icons/ti";
 import "../components/Stepper/stepper.css";
 
+const DayOfWeekEnum = {
+    Monday: 0,
+    Tuesday: 1,
+    Wednesday: 2,
+    Thursday: 3,
+    Friday: 4,
+
+    Saturday: 5,
+    Sunday: 6
+  };
 
 const Stepper = ({ sportId, token: propToken }) => {
   const steps = ["Token Authorization", "Choisir Sport", "Choisir Match", "Réserver terrain"];
@@ -21,12 +31,15 @@ const Stepper = ({ sportId, token: propToken }) => {
   const [loading, setLoading] = useState(false);
 //   const [error, setError] = useState("");
   const [matches, setMatches] = useState([]); 
+  const [codeUIR, setCodeUIR] = useState('');
     //----
   const [studentId, setStudentId] = useState('');
-  const [dayBooking] = useState(5); 
+  //DAY BOOKING 
+//   const [dayBooking] = useState(0); 
+const [dayBooking, setDayBooking] = useState(0); // Default to 0 (Sunday)
   const [hourStart, setHourStart] = useState('');
   const [hourEnd, setHourEnd] = useState('');
-  const [studentIdList, setStudentIdList] = useState('');
+  const [codeUIRList, setCodeUIRList] = useState('');
   const [sportName , setSportName]=useState(null);
   const [sportNames , setSportNames]=useState(null);
 
@@ -38,6 +51,16 @@ const Stepper = ({ sportId, token: propToken }) => {
   const [error, setError] = useState(null);
   const [errorMessage, setErrorMessage] = useState('');
 
+
+// Days of week 
+  useEffect(() => {
+    const today = new Date();
+    const currentDayOfWeek = today.getDay(); // 0 (Sunday) to 6 (Saturday)
+  
+    
+    // Map to the DayOfWeekEnum
+    setDayBooking(currentDayOfWeek-1);
+  }, []);
   const handleTimeRangeSelect = (timeRange) => {
     if (timeRange) {
       setHourStart(timeRange.hourStart);
@@ -147,7 +170,9 @@ const Stepper = ({ sportId, token: propToken }) => {
     setSuccess(null);  // Clear previous success message
     setError(null);    // Clear previous error message
 
-    const studentIds = studentIdList.split(',').map((id) => id.trim());
+    
+
+    const studentIds = codeUIRList.split(',').map((id) => id.trim());
   // Get the sportId from the selectedSport or the matches array
      const selectedSportObject = matches.find(match => match.id === selectedCategory);
 
@@ -161,13 +186,13 @@ const Stepper = ({ sportId, token: propToken }) => {
 
 
     const reservationData = {
-      studentId,
+      codeUIR,
       sportId,
       reservationDate: new Date().toISOString(),
       dayBooking, 
       hourStart,
       hourEnd,
-      studentIdList: studentIds,
+      codeUIRList: studentIds,
       dateCreation: new Date().toISOString(),
       dateModification: new Date().toISOString(),
     };
@@ -223,6 +248,8 @@ const Stepper = ({ sportId, token: propToken }) => {
   useEffect(() => {
     const today = new Date();
     const dayOfWeek = today.toLocaleDateString('en-US', { weekday: 'long' });
+    console.log(dayOfWeek);
+    
     setDay(dayOfWeek);
   }, []);
 
@@ -246,7 +273,7 @@ const Stepper = ({ sportId, token: propToken }) => {
     try {
       setLoading(true);
       setError(null);
-      
+      //`https://localhost:7125/api/Plannings/get-timeRanges-by-referenceSport-and-day/21/0`
       const response = await axios.get(
     
         `https://localhost:7125/api/Plannings/get-timeRanges-by-sport-and-day-not-reserved/${sportId}/${day}`,
@@ -412,24 +439,24 @@ const Stepper = ({ sportId, token: propToken }) => {
   {currentStep === 4 && selectedSport && matches.length > 0 && (
     <form onSubmit={handleSubmitaddReservation}>
       <div>
-        <label>Student ID:</label>
+        <label>Code UIR:</label>
         <input
         className="btn btn-primary" 
           type="text"
-          value={studentId}
-          onChange={(e) => setStudentId(e.target.value)}
+          value={codeUIR}
+          onChange={(e) => setCodeUIR(e.target.value)}
           required
         />
       </div>
 
       <div>
-        <h1>Time for {day}</h1>
+        <h1>Select Time of {day}</h1>
         {loading && <p>Loading...</p>}
         {error && <p className="error-message">{error}</p>}
 
         {timeRanges.length > 0 && !loading && (
           <div>
-            <h2>Select Time</h2>
+            {/* <h2>.</h2> */}
             <form>
               {timeRanges.map((timeRange) => (
                 <div key={timeRange.id}>
@@ -455,12 +482,12 @@ const Stepper = ({ sportId, token: propToken }) => {
       </div>
 
       <div>
-        <label>Student ID List:</label>
+        <label>Student Code UIR List:</label>
         <input
         className="btn btn-primary" 
           type="text"
-          value={studentIdList}
-          onChange={(e) => setStudentIdList(e.target.value)}
+          value={codeUIRList}
+          onChange={(e) => setCodeUIRList(e.target.value)}
           required
         />
       </div>
